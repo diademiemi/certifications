@@ -1,0 +1,57 @@
+---
+# Interface naming: GigabitEthernet1/0/x
+interface_commands:
+  - interface: 'GigabitEthernet1/0/23'
+    commands:
+      - no switchport
+      - ip address 192.168.1.244 255.255.255.0
+
+commands:
+  - "{{ global_commands }}"
+  - ip routing
+
+ios_vlans:
+  - name: servers
+    vlan_id: 30
+    ports:
+      - GigabitEthernet1/0/1
+      - GigabitEthernet1/0/2
+      - GigabitEthernet1/0/3
+      - GigabitEthernet1/0/4
+      - GigabitEthernet1/0/5
+    trunk_ports:
+      - GigabitEthernet1/0/25
+    trunk_encapsulation: dot1q
+    state: active
+    shutdown: disabled
+    ipv4:
+      address: 192.168.2.254/24
+
+bgp_config:
+  as: 65002
+  router_id: "{{ ansible_host }}"
+  redistribute:
+    - protocol: ospf
+      id: 400
+  networks:
+    - 192.168.2.0/24
+  neighbours:
+   - remote_as: 65001
+     addresses:
+      - 192.168.1.251
+      - 192.168.1.252
+     description: routers
+
+ospfv2_config:
+  - process_id: 400
+    areas:
+      - id: 0
+        area_type: ""  # Leave default to not configure special area settings
+        summary: false
+    networks:
+      - address: 192.168.2.254
+        wildcard: 0.0.0.0
+        area: 0
+    reference_bandwidth: 10000
+
+...

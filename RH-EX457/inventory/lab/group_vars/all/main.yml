@@ -1,0 +1,62 @@
+---
+# List of interface names and commands to be executed on them
+# These are used to bootstrap the configuration of the devices and prepare them for Ansible
+interface_commands:
+  # - interface: 'GigabitEthernet0/1'
+  #   commands:
+  #     - ip address dhcp
+  #     - ip nat outside
+  #     - no shut
+
+# Commands executed in the general configuration mode
+# These are used to bootstrap the configuration of the devices and prepare them for Ansible
+commands:
+  # - ip routing
+  # - "{{ global_commands }}"
+
+# Defined here to be included in the commands variable
+global_commands: |
+  hostname {{ inventory_hostname | upper }}
+  username example privilege 15 password 0 example
+  ip domain-name example.local
+  no logging console
+  line vty 0 4
+  transport input ssh
+  login local
+  exit
+  ip ssh version 2
+
+ios_vlans: []
+  # - name: example
+  #   vlan_id: 123
+  #   ports:
+  #     - GigabitEthernet1/0/1
+  #     - GigabitEthernet1/0/2
+  #     - GigabitEthernet1/0/3
+  #   trunk_ports:
+  #     - GigabitEthernet1/0/24
+  #   trunk_encapsulation: dot1q
+  #   state: active
+  #   shutdown: disabled
+  #   ipv4:
+  #     address: 192.168.1.254/24
+
+bgp_config: null
+  # as: 65000
+  # router_id: "{{ ansible_host }}"
+  # redistribute:
+  #   - connected
+  #   - ospf
+
+  # networks:
+  #  - 192.168.1.0/24
+  # neighbours:
+  #  - remote_as: 65000
+  #    addresses:
+  #     - 192.168.2.254
+  #     - 192.168.3.254
+  #    description: example
+
+ospfv2_config: []
+
+...

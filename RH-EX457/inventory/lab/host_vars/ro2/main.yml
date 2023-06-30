@@ -1,0 +1,36 @@
+---
+# Interface naming: GigabitEthernet0/x
+interface_commands:
+  - interface: 'GigabitEthernet0/0'
+    commands:
+      - no ip address 192.168.1.251 255.255.255.0
+      - no ip address 192.168.1.253 255.255.255.0
+      - ip address 192.168.1.252 255.255.255.0
+      - ip nat inside
+      - no shut
+      - standby 1 ip 192.168.1.254
+      - standby 1 priority 100
+      - standby 1 preempt
+  - interface: 'GigabitEthernet0/1'
+    commands:
+      - ip address dhcp
+      - ip nat outside
+      - no shut
+
+commands:
+  - "{{ global_commands }}"
+  - access-list 1 permit any
+  - ip nat inside source list 1 interface g0/1 overload
+
+bgp_config:
+  as: 65001
+  router_id: "{{ ansible_host }}"
+  redistribute: []
+  networks: []
+  neighbours:
+   - remote_as: 65002
+     addresses:
+      - 192.168.1.244
+     description: sw4
+
+...

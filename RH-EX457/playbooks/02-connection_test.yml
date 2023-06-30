@@ -1,0 +1,16 @@
+---
+- name: Test connection to Cisco IOS devices
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Cisco show version
+      cisco.ios.ios_command:
+        commands:
+          - show version
+      register: show_version
+
+    - name: Debug show version
+      ansible.builtin.debug:
+        msg: "{{ show_version }}"
+
+...

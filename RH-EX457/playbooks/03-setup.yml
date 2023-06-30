@@ -1,0 +1,163 @@
+---
+- name: Create VLANs
+  hosts: all
+  tags: vlans
+  gather_facts: true
+  tasks:
+    - name: Create VLANs
+      cisco.ios.ios_vlans:
+        config:
+          - name: "{{ item.name }}"
+            vlan_id: "{{ item.vlan_id }}"
+            state: "{{ item.state | default('active') }}"
+            shutdown: "{{ item.shutdown | default('disabled') }}"
+            remote_span: false  # Breaks things!
+      loop: "{{ ios_vlans }}"
+
+    - name: Set access on VLAN ports
+      cisco.ios.ios_l2_interfaces:
+        config:
+          - name: "{{ item.1 }}"
+            mode: access
+            access:
+              vlan: "{{ item.0.vlan_id }}"
+      loop: "{{ ios_vlans | subelements('ports') }}"
+
+    - name: Set encapsulation on ports  # Bug in module when not done in separate task
+      cisco.ios.ios_l2_interfaces:
+        config:
+          - name: "{{ item.1 }}"
+            trunk:
+              encapsulation: "{{ item.0.trunk_encapsulation }}"
+      loop: "{{ ios_vlans | subelements('trunk_ports') }}"
+
+    - name: Set trunk ports
+      cisco.ios.ios_l2_interfaces:
+        config:
+          - name: "{{ item.1 }}"
+            mode: trunk
+            trunk:
+              encapsulation: "{{ item.0.trunk_encapsulation }}"
+              allowed_vlans: "{{ item.0.vlan_id }}"
+      loop: "{{ ios_vlans | subelements('trunk_ports') }}"
+
+    - name: Set spanning tree
+      cisco.ios.ios_config:
+        lines:
+          - spanning-tree portfast
+        parents: "interface {{ item.1 }}"
+      loop: "{{ ios_vlans | subelements('ports') }}"
+
+    - name: Set spanning tree trunk
+      cisco.ios.ios_config:
+        lines:
+          - spanning-tree portfast trunk
+        parents: "interface {{ item.1 }}"
+      loop: "{{ ios_vlans | subelements('trunk_ports') }}"
+
+    - name: Set IP addresses
+      cisco.ios.ios_l3_interfaces:
+        config:
+          - name: "Vlan_{{ item.vlan_id }}"
+            ipv4:
+              - address: "{{ item.ipv4.address }}"
+      loop: "{{ ios_vlans }}"
+
+- name: Set BGP config
+  hosts: all
+  tags: bgp
+  gather_facts: true
+  tasks:
+    - name: Run when BGP config is present
+      when:
+        - bgp_config is defined
+        - bgp_config is not none
+        - bgp_config.as is defined
+      block:
+        - name: Set BGP config
+          cisco.ios.ios_bgp:
+            config:
+              bgp_as: "{{ bgp_config.as }}"
+              router_id: "{{ bgp_config.router_id | default(omit) }}"
+
+        - name: Set BGP networks
+          cisco.ios.ios_bgp:
+            config:
+              bgp_as: "{{ bgp_config.as }}"
+              networks:
+                - prefix: "{{ item | ansible.utils.ipaddr('address') }}"
+                  masklen: "{{ item | ansible.utils.ipaddr('prefix') }}"
+          loop: "{{ bgp_config.networks | default([]) }}"
+
+        - name: Set BGP neighbours
+          cisco.ios.ios_bgp:
+            config:
+              bgp_as: "{{ bgp_config.as }}"
+              neighbors:
+                - neighbor: "{{ item.1 }}"
+                  remote_as: "{{ item.0.remote_as }}"
+                  description: "{{ item.0.description | default(omit) }}"
+          loop: "{{ bgp_config.neighbours | default([]) | subelements('addresses') }}"
+
+        - name: Set redistribute configs
+          cisco.ios.ios_bgp:
+            config:
+              bgp_as: "{{ bgp_config.as }}"
+              address_family:
+                - afi: ipv4
+                  redistribute:
+                    - protocol: "{{ item.protocol }}"
+                      id: "{{ item.id | default(omit) }}"
+                      route_map: "{{ item.route_map | default(omit) }}"
+          loop: "{{ bgp_config.redistribute | default([]) }}"
+
+- name: Set OSPF config
+  hosts: all
+  tags: ospfs
+  gather_facts: true
+  tasks:
+    - name: Set OSPF process options
+      cisco.ios.ios_ospfv2:
+        config:
+          processes:
+            - process_id: "{{ item.process_id }}"
+              auto_cost:
+                reference_bandwidth: "{{ item.reference_bandwidth | default(omit) }}"
+      loop: "{{ ospfv2_config }}"
+
+    - name: Add stub OSPF areas
+      cisco.ios.ios_ospfv2:
+        config:
+          processes:
+            - process_id: "{{ item.0.process_id }}"
+              areas:
+                - area_id: "{{ item.1.id }}"
+                  capability: true
+                  stub:
+                    no_summary: "{{ not item.1.summary | default(false) }}"
+      loop: "{{ ospfv2_config | subelements('areas', skip_missing=true) | selectattr('1.area_type', 'equalto', 'stub') }}"
+
+    - name: Add NSSA OSPF areas
+      cisco.ios.ios_ospfv2:
+        config:
+          processes:
+            - process_id: "{{ item.0.process_id }}"
+              areas:
+                - area_id: "{{ item.1.id }}"
+                  capability: true
+                  nssa:
+                    no_summary: "{{ not item.1.summary | default(false) }}"
+      loop: "{{ ospfv2_config | subelements('areas', skip_missing=true) | selectattr('1.area_type', 'equalto', 'nssa') }}"
+
+    - name: Add networks
+      cisco.ios.ios_ospfv2:
+        config:
+          processes:
+            - process_id: "{{ item.0.process_id }}"
+              network:
+                - address: "{{ item.1.address }}"
+                  wildcard_bits: "{{ item.1.wildcard }}"
+                  area: "{{ item.1.area }}"
+      loop: "{{ ospfv2_config | subelements('networks', skip_missing=true) }}"
+
+...

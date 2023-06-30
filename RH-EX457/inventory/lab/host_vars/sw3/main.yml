@@ -1,0 +1,13 @@
+---
+# Interface naming: GigabitEthernet1/0/x
+interface_commands:
+  - interface: 'vlan 1'
+    commands:
+      - no shut
+      - no ip address 192.168.1.240 255.255.255.0
+      - ip address 192.168.1.243 255.255.255.0
+
+commands:
+  - "{{ global_commands }}"
+
+...

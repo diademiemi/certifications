@@ -1,0 +1,106 @@
+---
+- name: Perform initial setup over serial (over telnet)
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Debug
+      ansible.builtin.debug:
+        msg: |
+          Host: {{ telnet_host }}
+          Port: {{ telnet_port }}
+      delegate_to: localhost
+
+    - name: Get initial config
+      ansible.builtin.shell:
+        cmd: |+
+          netcat -C {{ telnet_host }} {{ telnet_port }} -w 10 <<EOF
+
+          enable
+          terminal length 0
+          show run
+          show crypto key mypubkey rsa
+          exit
+
+
+          EOF
+      register: initial_show_run
+      delegate_to: localhost
+      changed_when: false
+
+    - name: Configurations
+      ansible.builtin.shell:
+        cmd: |+
+          netcat -C {{ telnet_host }} {{ telnet_port }} -w 10 <<EOF
+
+
+          enable
+          terminal length 0
+          configure terminal
+          {% for command in commands | default([]) %}
+          {{ command }}
+          {% endfor %}
+          exit
+          exit
+
+
+          EOF
+      delegate_to: localhost
+      changed_when: false
+
+    - name: Interface configurations
+      ansible.builtin.shell:
+        cmd: |+
+          netcat -C {{ telnet_host }} {{ telnet_port }} -w 10 <<EOF
+
+
+          enable
+          terminal length 0
+          configure terminal
+          interface {{ item.interface }}
+          {% for command in item.commands %}
+          {{ command }}
+          {% endfor %}
+          exit
+          exit
+          exit
+
+
+          EOF
+      delegate_to: localhost
+      changed_when: false
+      loop: "{{ interface_commands | default([]) }}"
+
+
+    - name: Get current config
+      ansible.builtin.shell:
+        cmd: |+
+          netcat -C {{ telnet_host }} {{ telnet_port }} -w 10 <<EOF
+
+
+          enable
+          terminal length 0
+          show run
+          show crypto key mypubkey rsa
+          exit
+
+
+          EOF
+      register: after_show_run
+      delegate_to: localhost
+      changed_when: false
+
+
+    - name: Show output
+      ansible.builtin.debug:
+        var: after_show_run
+      delegate_to: localhost
+
+    - name: Determine whether configuration has changed  # This doesn't work the greatest over Telnet...
+      ansible.builtin.debug:
+        msg: "Config changed: {{ not config_equals }}"
+      changed_when: not config_equals
+      delegate_to: localhost
+      vars:
+        config_equals: "{{ initial_show_run.stdout_lines | reject('match', '^.*[\\*!]') == after_show_run.stdout_lines | reject('match', '^.*[\\*!]') }}"
+
+...

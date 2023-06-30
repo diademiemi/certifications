@@ -1,0 +1,55 @@
+---
+# Interface naming: GigabitEthernet1/0/x
+
+interface_commands:
+  - interface: 'GigabitEthernet1/0/23'
+    commands:
+      - no switchport
+      - ip address 192.168.1.245 255.255.255.0
+
+commands:
+  - "{{ global_commands }}"
+  - ip routing
+
+ios_vlans:
+  - name: servers
+    vlan_id: 30
+    ports: []
+    trunk_ports:
+      - GigabitEthernet1/0/24
+    trunk_encapsulation: dot1q
+    state: active
+    shutdown: disabled
+    ipv4:
+      address: 192.168.2.245/24
+  - name: devices
+    vlan_id: 40
+    ports:
+      - GigabitEthernet1/0/1
+      - GigabitEthernet1/0/2
+      - GigabitEthernet1/0/3
+      - GigabitEthernet1/0/4
+      - GigabitEthernet1/0/5
+    trunk_ports: []
+    trunk_encapsulation: dot1q
+    state: active
+    shutdown: disabled
+    ipv4:
+      address: 192.168.3.254/24
+
+ospfv2_config:
+  - process_id: 500
+    areas:
+      - id: 0
+        area_type: ""  # Leave default to not configure special area settings
+        summary: false
+    networks:
+      - address: 192.168.3.254
+        wildcard: 0.0.0.0
+        area: 0
+      - address: 192.168.2.245
+        wildcard: 0.0.0.0
+        area: 0
+    reference_bandwidth: 10000
+
+...

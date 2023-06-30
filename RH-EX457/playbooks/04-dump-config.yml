@@ -1,0 +1,19 @@
+---
+- name: Dump config
+  hosts: all
+  tags: backup
+  gather_facts: true
+  tasks:
+    - name: Gather all facts
+      cisco.ios.ios_facts:
+        gather_subset: all
+      register: ios_facts
+
+    - name: Write facts out to file per host
+      ansible.builtin.copy:
+        content: "{{ ios_facts | to_nice_json }}"
+        dest: "{{ lookup('env', 'PWD') }}/cisco_facts/facts_{{ inventory_hostname }}.json"
+        mode: "600"
+      delegate_to: localhost
+
+...
