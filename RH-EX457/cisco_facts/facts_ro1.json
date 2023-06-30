@@ -1,0 +1,170 @@
+{
+    "ansible_facts": {
+        "ansible_net_all_ipv4_addresses": [
+            "192.168.1.251",
+            "122.21.8.173"
+        ],
+        "ansible_net_all_ipv6_addresses": [],
+        "ansible_net_api": "cliconf",
+        "ansible_net_config": "Building configuration...\n\n\nCurrent configuration : 1747 bytes\n!\n! Last configuration change at 11:41:09 UTC Fri Jun 30 2023 by example\nversion 15.1\nservice timestamps debug datetime msec\nservice timestamps log datetime msec\nno service password-encryption\n!\nhostname RO1\n!\nboot-start-marker\nboot-end-marker\n!\n!\nno logging console\n!\nno aaa new-model\n!\nmemory-size iomem 10\n!\ndot11 syslog\nip source-route\n!\n!\nip cef\n!\n!\n!\nip domain name example.local\nno ipv6 cef\n!\nmultilink bundle-name authenticated\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\nvoice-card 0\n!\ncrypto pki token default removal timeout 0\n!\n!\n!\n!\nlicense udi pid CISCO2821 sn FCZ1220719L\nusername example privilege 15 password 0 example\n!\nredundancy\n!\n!\nip ssh version 2\n! \n!\n!\n!\n!\n!\n!\n!\ninterface GigabitEthernet0/0\n ip address 192.168.1.251 255.255.255.0\n ip nat inside\n ip virtual-reassembly in\n standby 1 ip 192.168.1.254\n standby 1 priority 101\n standby 1 preempt\n duplex auto\n speed auto\n!\ninterface GigabitEthernet0/1\n ip address dhcp\n ip nat outside\n ip virtual-reassembly in\n duplex auto\n speed auto\n!\ninterface FastEthernet0/0/0\n no ip address\n!\ninterface FastEthernet0/0/1\n no ip address\n!\ninterface FastEthernet0/0/2\n no ip address\n!\ninterface FastEthernet0/0/3\n no ip address\n!\ninterface Vlan1\n no ip address\n!\nrouter bgp 65001\n bgp router-id 192.168.1.251\n bgp log-neighbor-changes\n neighbor 192.168.1.244 remote-as 65002\n neighbor 192.168.1.244 description sw4\n!\nip forward-protocol nd\nno ip http server\nno ip http secure-server\n!\n!\nip nat inside source list 1 interface GigabitEthernet0/1 overload\n!\naccess-list 1 permit any\nnls resp-timeout 1\ncpd cr-id 1\n!\n!\n!\n!\n!\n!\ncontrol-plane\n!\n!\n!\n!\nmgcp profile default\n!\n!\n!\n!\n!\ngatekeeper\n shutdown\n!\n!\n!\nline con 0\nline aux 0\nline vty 0 4\n login local\n transport input ssh\n!\nscheduler allocate 20000 1000\nend",
+        "ansible_net_filesystems": [
+            "flash:"
+        ],
+        "ansible_net_filesystems_info": {
+            "flash:": {
+                "spacefree_kb": 187652.0,
+                "spacetotal_kb": 255096.0
+            }
+        },
+        "ansible_net_gather_network_resources": [],
+        "ansible_net_gather_subset": [
+            "config",
+            "default",
+            "hardware",
+            "interfaces"
+        ],
+        "ansible_net_hostname": "RO1",
+        "ansible_net_image": "flash:c2800nm-adventerprisek9_ivs_li-mz.151-4.M8.bin",
+        "ansible_net_interfaces": {
+            "FastEthernet0/0/0": {
+                "bandwidth": 100000,
+                "description": null,
+                "duplex": null,
+                "ipv4": [],
+                "lineprotocol": "down",
+                "macaddress": "0016.4678.a1a8",
+                "mediatype": null,
+                "mtu": 1500,
+                "operstatus": "up",
+                "type": "Fast Ethernet"
+            },
+            "FastEthernet0/0/1": {
+                "bandwidth": 100000,
+                "description": null,
+                "duplex": null,
+                "ipv4": [],
+                "lineprotocol": "down",
+                "macaddress": "0016.4678.a1a9",
+                "mediatype": null,
+                "mtu": 1500,
+                "operstatus": "up",
+                "type": "Fast Ethernet"
+            },
+            "FastEthernet0/0/2": {
+                "bandwidth": 100000,
+                "description": null,
+                "duplex": null,
+                "ipv4": [],
+                "lineprotocol": "down",
+                "macaddress": "0016.4678.a1aa",
+                "mediatype": null,
+                "mtu": 1500,
+                "operstatus": "up",
+                "type": "Fast Ethernet"
+            },
+            "FastEthernet0/0/3": {
+                "bandwidth": 100000,
+                "description": null,
+                "duplex": null,
+                "ipv4": [],
+                "lineprotocol": "down",
+                "macaddress": "0016.4678.a1ab",
+                "mediatype": null,
+                "mtu": 1500,
+                "operstatus": "up",
+                "type": "Fast Ethernet"
+            },
+            "GigabitEthernet0/0": {
+                "bandwidth": 1000000,
+                "description": null,
+                "duplex": "Full",
+                "ipv4": [
+                    {
+                        "address": "192.168.1.251",
+                        "subnet": "24"
+                    }
+                ],
+                "lineprotocol": "up",
+                "macaddress": "0021.5525.c520",
+                "mediatype": "T",
+                "mtu": 1500,
+                "operstatus": "up",
+                "type": "MV96340 Ethernet"
+            },
+            "GigabitEthernet0/1": {
+                "bandwidth": 1000000,
+                "description": null,
+                "duplex": "Full",
+                "ipv4": [
+                    {
+                        "address": "122.21.8.173",
+                        "subnet": "30"
+                    }
+                ],
+                "lineprotocol": "up",
+                "macaddress": "0021.5525.c521",
+                "mediatype": "T",
+                "mtu": 1500,
+                "operstatus": "up",
+                "type": "MV96340 Ethernet"
+            },
+            "LI-Null0": {
+                "ipv6": []
+            },
+            "NVI0": {
+                "bandwidth": 56,
+                "description": null,
+                "duplex": null,
+                "ipv4": [],
+                "lineprotocol": "up",
+                "macaddress": null,
+                "mediatype": null,
+                "mtu": 1514,
+                "operstatus": "up",
+                "type": null
+            },
+            "Vlan1": {
+                "bandwidth": 100000,
+                "description": null,
+                "duplex": null,
+                "ipv4": [],
+                "lineprotocol": "down",
+                "macaddress": "0021.5525.c520",
+                "mediatype": null,
+                "mtu": 1500,
+                "operstatus": "up",
+                "type": "EtherSVI"
+            }
+        },
+        "ansible_net_iostype": "IOS",
+        "ansible_net_memfree_mb": 35.993534088134766,
+        "ansible_net_memtotal_mb": 87.31588745117188,
+        "ansible_net_model": "2821",
+        "ansible_net_neighbors": {
+            "GigabitEthernet0/0": [
+                {
+                    "host": "SW1.example.local",
+                    "ip": "192.168.1.241",
+                    "platform": "cisco WS-C3750G-48PS",
+                    "port": "GigabitEthernet1/0/24"
+                }
+            ],
+            "GigabitEthernet0/1": [
+                {
+                    "host": "ISP1_C1-C2",
+                    "ip": "122.21.8.174",
+                    "platform": "cisco WS-C3750G-48PS",
+                    "port": "GigabitEthernet1/0/8"
+                }
+            ]
+        },
+        "ansible_net_operatingmode": "autonomous",
+        "ansible_net_python_version": "3.10.6",
+        "ansible_net_serialnum": "FCZ1220719L",
+        "ansible_net_system": "ios",
+        "ansible_net_version": "15.1(4)M8",
+        "ansible_network_resources": {}
+    },
+    "changed": false,
+    "failed": false
+}
