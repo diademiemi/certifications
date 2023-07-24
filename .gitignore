@@ -5,14 +5,12 @@
 # Credentials
 **/kubeconfig.yaml
 .*vault*
-**/age.key
 
 # Terraform
 **/.terraform/*
 *.tfstate
 *.tfstate.*
 .terraform.lock.hcl
-**/*secret.tfvars
 
 # Ansible
 /tests/output/
@@ -20,10 +18,10 @@
 output/
 .collection_root/*
 
+**/roles/*.*
+!**/roles/requirements.yml
 **/collections/**
 !**/collections/requirements.yml
-**/roles/**
-!**/roles/requirements.yml
 !/**/.gitkeep
 
 # Byte-compiled / optimized / DLL files
