@@ -1,0 +1,12 @@
+---
+skip_list:
+  - "var-naming[no-role-prefix]"  # Allow _ and __ internal vars
+  - run-once[task]  # This check is broken
+
+# Exclude downloaded roles and collections from linting
+exclude_paths:
+  - collections/**
+  - roles/**
+  - changelogs
+
+...

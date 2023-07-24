@@ -1,0 +1,35 @@
+---
+- name: Install CRC utilities
+  hosts: all
+  tasks:
+    - name: Download crc client
+      ansible.builtin.get_url:
+        url: https://mirror.openshift.com/pub/openshift-v4/clients/crc/latest/crc-linux-amd64.tar.xz
+        dest: /tmp/crc-linux-amd64.tar.xz
+        mode: "0755"
+
+    - name: Extract crc client
+      become: true
+      ansible.builtin.unarchive:
+        src: /tmp/crc-linux-amd64.tar.xz
+        dest: /usr/local/bin
+        remote_src: true
+        creates: /usr/local/bin/crc
+        extra_opts:
+          - --strip-components=1
+
+    - name: Download odo client
+      ansible.builtin.get_url:
+        url: https://mirror.openshift.com/pub/openshift-v4/clients/odo/latest/odo-linux-amd64.tar.gz
+        dest: /tmp/odo-linux-amd64.tar.gz
+        mode: "0755"
+
+    - name: Extract odo client
+      become: true
+      ansible.builtin.unarchive:
+        src: /tmp/odo-linux-amd64.tar.gz
+        dest: /usr/local/bin
+        remote_src: true
+        creates: /usr/local/bin/odo
+
+...

@@ -1,0 +1,4 @@
+---
+pull_secret: "{{ vault_pull_secret }}"
+
+...

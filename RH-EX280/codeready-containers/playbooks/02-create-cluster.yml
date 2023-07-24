@@ -1,0 +1,13 @@
+---
+- name: Set up CRC cluster
+  hosts: all
+  tasks:
+    - name: Set up crc cluster
+      become: true
+      ansible.builtin.shell: |
+        crc setup
+        crc start
+      register: crc_setup
+      changed_when: false
+
+...
