@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+  container-a:
+    image: localhost/container-a
+    build:
+      context: ./container-a
+      dockerfile: Containerfile
+    restart: unless-stopped
+
+  container-a-cmd:
+    image: localhost/container-a
+    build:
+      context: ./container-a
+      dockerfile: Containerfile
+    restart: unless-stopped
+    command: [ "echo 'example-archive:'; cat example-archive; echo 'example-file:'; cat /example-file; echo 'ls /:'; ls /" ]

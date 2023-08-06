@@ -1,0 +1,22 @@
+version: '3'
+
+services:
+  write-date:
+    image: localhost/container-c1
+    build:
+      context: ./container-c1
+      dockerfile: Containerfile
+    restart: unless-stopped
+    volumes:
+      - ./example-dir:/mnt:rw
+
+  read-date:
+    image: localhost/container-c2
+    build:
+      context: ./container-c2
+      dockerfile: Containerfile
+    restart: unless-stopped
+    volumes:
+      - ./example-dir:/mnt:ro
+    depends_on:
+      - write-date

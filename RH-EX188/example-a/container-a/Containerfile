@@ -1,0 +1,40 @@
+FROM ubuntu:22.04
+
+# ENV is used to set environment variables
+ENV DEBIAN_FRONTEND=noninteractive
+
+# RUN can be used to run commands inside the container
+RUN apt-get update && apt-get install --no-install-recommends -y \
+    curl \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Difference between COPY and ADD is that ADD can also extract tar files or download from URL
+
+COPY example-file /example-file
+
+# Will only copy the file into the container
+COPY example-archive.tar.gz /
+
+# Should create a directory called /archive and copy the file into it
+ADD example-archive.tar.gz /
+
+# Will download the file from the URL and copy it into the container
+ADD https://codeload.github.com/containers/podman/zip/refs/heads/main /podman-source.zip
+
+# WORKDIR is used to set the working directory inside the container
+WORKDIR /example-archive
+
+RUN useradd -ms /bin/bash example-user
+
+# USER is used to set the user that will run the commands inside the container
+USER example-user
+
+# ENTRYPOINT and CMD are used to define the default command to run when the container starts
+
+# ENTRYPOINT sets the default executable and arguments, they cannot be overwritten when running the container without modifying the image
+ENTRYPOINT [ "/bin/sh", "-c" ]
+
+# CMD sets the default arguments to the executable, but they can be overwritten when running the container
+CMD [ "while true; do echo Hello World; sleep 10; done" ]
+

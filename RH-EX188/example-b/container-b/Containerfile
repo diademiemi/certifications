@@ -1,0 +1,18 @@
+FROM ubuntu:22.04
+
+# ENV is used to set environment variables
+ENV DEBIAN_FRONTEND=noninteractive
+
+# RUN can be used to run commands inside the container
+RUN apt-get update && apt-get install --no-install-recommends -y \
+    iperf3 \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# ENTRYPOINT and CMD are used to define the default command to run when the container starts
+
+# ENTRYPOINT sets the default executable and arguments, they cannot be overwritten when running the container without modifying the image
+ENTRYPOINT [ "iperf3" ]
+
+# CMD sets the default arguments to the executable, but they can be overwritten when running the container
+CMD [ "-s" ]

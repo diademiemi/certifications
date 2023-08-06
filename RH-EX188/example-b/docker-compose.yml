@@ -1,0 +1,27 @@
+version: '3'
+
+services:
+  iperf-server:
+    image: localhost/container-b
+    build:
+      context: ./container-b
+      dockerfile: Containerfile
+    restart: unless-stopped
+    networks:
+      - iperf
+
+  iperf-client:
+    image: localhost/container-b
+    build:
+      context: ./container-b
+      dockerfile: Containerfile
+    restart: unless-stopped
+    command: [ "-c", "iperf-server", "-t", "10" ]
+    networks:
+      - iperf
+    depends_on:
+      - iperf-server
+
+networks:
+  iperf:
+    driver: bridge
