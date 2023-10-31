@@ -1,0 +1,6 @@
+---
+foreman_username: "admin"
+foreman_password: "admin"
+foreman_url: "https://foreman.terraform.test"
+
+...

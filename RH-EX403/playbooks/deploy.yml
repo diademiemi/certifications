@@ -1,0 +1,20 @@
+---
+- name: Build VyOS image
+  hosts: localhost
+  tags: always, vyos, vms
+  roles:
+    - diademiemi.vm_utils.vyos_qcow2_image
+
+- name: Start VMs & Add to /etc/hosts
+  tags: always, vms
+  ansible.builtin.import_playbook: diademiemi.vm_utils.terraform_vms
+
+- name: Install foreman
+  hosts: foreman
+  roles:
+    - { name: diademiemi.foreman.install, tags: [install] }
+    - { name: diademiemi.foreman.smart_proxy, tags: [smart_proxy] }
+    - { name: diademiemi.foreman.configure, tags: [configure] }
+    - { name: diademiemi.foreman.configure_katello, tags: [configure-katello] }
+
+...

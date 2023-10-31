@@ -1,0 +1,13 @@
+---
+collections:
+  - name: cloud.terraform
+    type: git
+    source: https://github.com/ansible-community/cloud.terraform.git
+  - name: theforeman.foreman
+  - name: awx.awx
+  - name: diademiemi.vmutils
+  - name: diademiemi.foreman  # Most exam practice is located here
+
+roles: []
+
+...
