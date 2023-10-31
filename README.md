@@ -52,13 +52,13 @@ This repository is not to be used as a study guide, this will not be enough to s
             <td rowspan=1>Certified Specialist in Managing<br>Automation with Ansible Automation Platform</td>
             <td>EX467</td>
             <td>WIP</td>
-            <td></td>
+            <td><code><a href="./RH-EX467">./RH-EX467</a></code></td>
         </tr>
         <tr>
             <td rowspan=1>Certified Specialist in Deployment and Systems Management</td>
             <td>EX403</td>
             <td>WIP</td>
-            <td></td>
+            <td><code><a href="./RH-EX403">./RH-EX403</a></code></td>
         </tr>
         <tr>
             <td rowspan=1>Certified Specialist in Services<br>Management and Automation</td>
