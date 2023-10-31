@@ -13,8 +13,8 @@
   hosts: foreman
   roles:
     - { name: diademiemi.foreman.install, tags: [install] }
-    - { name: diademiemi.foreman.smart_proxy, tags: [smart_proxy] }
-    - { name: diademiemi.foreman.configure, tags: [configure] }
+    - { name: diademiemi.foreman.smart_proxy, tags: [smart-proxy] }
     - { name: diademiemi.foreman.configure_katello, tags: [configure-katello] }
+    - { name: diademiemi.foreman.configure, tags: [configure] }
 
 ...

@@ -1,0 +1,16 @@
+---
+- name: Wait for user
+  hosts: localhost
+  tasks:
+    - name: Wait for user
+      ansible.builtin.pause:
+        prompt: "Please PXE boot the VM and install CentOS on it through the Foreman UI. Name it capsule.terraform.test"
+
+- name: Install Capsule server
+  hosts: foreman, capsule
+  roles:
+    - { name: diademiemi.foareman.install_capsule, tags: [install-capsule], }
+    - { name: diademiemi.foreman.smart_proxy, tags: [capsule-smart-proxy] }
+
+
+...

@@ -8,11 +8,11 @@ vms = [
     hostname = "vyos"
 
     vcpu   = 2
-    memory = 4096
+    memory = 2048
 
     cloudinit_image = "/tmp/vyos-1.5.0-cloud-init-5G-qemu.qcow2"
 
-    disk_size = 42949672960 # 40 GiB
+    disk_size = 8589934592 # 8 GiB
 
     password_auth         = true
     root_password         = "root"
@@ -121,9 +121,9 @@ EOT
 
 client_hostname = "client"
 
-client_vcpu   = 4
-client_memory = 8192
-
+client_vcpu   = 1
+client_memory = 2048
+client_disk_size = 21474836480 # 20 GiB
 client_network_interfaces = [
   {
     network_name = "terraform"
