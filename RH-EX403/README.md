@@ -332,3 +332,8 @@ rpm --checksig /root/rpmbuild/RPMS/noarch/example-1.0.0-1.el8.noarch.rpm
 # Signature should be OK
 
 ```
+
+### Upload Example RPM to Foreman / Satellite
+```bash
+hammer repository upload-content --name "CentOS Stream 8 - BaseOS" --product "CentOS Product" --organization "Default Organization" --path /root/rpmbuild/RPMS/noarch/example-1.0.0-1.el8.noarch.rpm
+```
