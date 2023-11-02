@@ -1,5 +1,10 @@
 # EX374: Red Hat Certified Specialist in Deployment and Systems Management
 
+# Thoughts after exam
+I passed this exam, but I needed all the time allocated. This is definitely the hardest exam I've taken thus far, but that makes sense, as I don't work with Satellite daily. It was definitely tricky, and my PXE boot not working at the end stressed me out, since usually I'd just search through endless forum threads, but those of course weren't accessible to me. But I managed to get it working in the end. I'm glad I passed, but I'm also glad I don't have to do this again. I would really recommend trying every exam objective without using forums. Remember that in every Red Hat exam you get access to the documentation, so learn how to search through it quickly.
+
+I ended up scoring a 288/300, with my only error being in the small Ansible part of the exam, how ironic. I was being a smartass and thought I'd picked up on a trick question, but I was overthinking it..
+
 # Exam Practice
 To ensure I'm not sharing exam details, these are notes I took *before* the exam based on studying the exam objectives.
 
