@@ -2,14 +2,12 @@
 For this I'm just going to create some containers using as many of the Containerfile keywords as possible, then run them in different ways with Podman.  
 
 
-# Exam Practice
-To ensure I'm not sharing exam details, these are notes I took *before* the exam based on studying the exam objectives.
-
-I passed this exam on 2023-08-07. Honestly, if you know where to find the letter "e" on your keyboard to pass env variables to a container, you're 99% of the way there.  
+# Thoughts after exam
+I passed this exam on 2023-08-07. Honestly, if you know where to find the letter "e" on your keyboard, you're 99% of the way there.  
 
 # Exam Practice
 To ensure I'm not sharing exam details, these are notes I took *before* the exam based on studying the exam objectives.
-I'm using Podman Compose, even though it's not on the exam objectives, because it's easier for me than to use than Podman directly.
+I'm using Podman Compose in some parts of this repo, even though it's not on the exam objectives, because it's easier for me than to use than Podman directly.
 
 ## Pre-requisites
 On Ubuntu:
