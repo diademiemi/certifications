@@ -1,0 +1,279 @@
+---
+- name: Set up Galaxy
+  hosts: galaxy
+  gather_facts: true
+  pre_tasks:
+    - name: Ensure Python pip is installed
+      ansible.builtin.package:
+        name: python3-pip
+        state: present
+
+    - name: Ensure kubernetes python module is installed
+      ansible.builtin.pip:
+        name: kubernetes
+        state: present
+
+  tasks:
+    - name: "Generate random admin password"
+      ansible.builtin.set_fact:
+        pulp_admin_password: "{{ lookup('password', '/dev/null length=32 chars=ascii_letters,digits') }}"
+      when: pulp_admin_password is not defined
+
+    - name: Ensure GPG is installed
+      ansible.builtin.package:
+        name: gnupg2
+        state: present
+      when: pulp_signing_key_private is not defined and pulp_signing_key_public is not defined
+
+    - name: "Check GPG keys"
+      ansible.builtin.command: gpg --list-keys
+      register: gpg_keys
+      changed_when: false
+
+    - name: "Generate PGP key"
+      ansible.builtin.shell: |
+        gpg --batch --gen-key <<EOF
+        %no-protection
+        Key-Type:1
+        Key-Length:2048
+        Subkey-Type:1
+        Subkey-Length:2048
+        Name-Real: "{{ pulp_signing_key_name | default('Pulp Signing Key') }}"
+        Name-Email: "{{ pulp_signing_key_email | default('pulp@pulp') }}"
+        Expire-Date:0
+        %commit
+        EOF
+      changed_when: true
+      when:
+        - pulp_signing_key_private is not defined and pulp_signing_key_public is not defined
+        - gpg_keys.stdout.find(pulp_signing_key_email | default('pulp@pulp')) == -1
+
+    - name: Register public key
+      ansible.builtin.shell: |
+        gpg --export --armor {{ pulp_signing_key_email | default('pulp@pulp') }}
+      when: pulp_signing_key_public is not defined
+      register: pulp_signing_key_public_output
+      changed_when: false
+
+    - name: Register private key
+      ansible.builtin.shell: |
+        gpg --export-secret-keys --armor {{ pulp_signing_key_email | default('pulp@pulp') }}
+      when: pulp_signing_key_private is not defined
+      register: pulp_signing_key_private_output
+      changed_when: false
+
+    - name: "Set pulp signing key public"
+      ansible.builtin.set_fact:
+        pulp_signing_key_public: "{{ pulp_signing_key_public_output.stdout }}"
+      when: pulp_signing_key_public is not defined
+
+    - name: "Set pulp signing key private"
+      ansible.builtin.set_fact:
+        pulp_signing_key_private: "{{ pulp_signing_key_private_output.stdout }}"
+      when: pulp_signing_key_private is not defined
+
+
+    - name: "Add Pulp Helm repository"
+      kubernetes.core.helm_repository:
+        name: pulp-operator
+        repo_url: "https://github.com/pulp/pulp-k8s-resources/raw/main/helm-charts/"
+
+    - name: "Install Pulp Operator"
+      kubernetes.core.helm:
+        kubeconfig: "{{ kubeconfig_path | default(omit) }}"
+        chart_ref: "pulp-operator/pulp-operator"
+        chart_version: "{{ pulp_version | default(omit) }}"
+        release_name: "{{ pulp_operator_release_name | default('pulp-operator') }}"
+        namespace: "{{ pulp_namespace | default('pulp') }}"
+        create_namespace: true
+
+    - name: "Generate SSL certificate"
+      kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig_path | default(omit) }}"
+        definition:
+          apiVersion: cert-manager.io/v1
+          kind: Certificate
+          metadata:
+            name: "{{ pulp_name | default('pulp-deployment') }}-certificate"
+            namespace: "{{ pulp_namespace | default('pulp') }}"
+          spec:
+            secretName: "{{ pulp_name | default('pulp-deployment') }}-certificate"
+            commonName: "{{ pulp_hostname | default('galaxy.terraform.test') }}"
+            dnsNames:
+              - "{{ pulp_hostname | default('galaxy.terraform.test') }}"
+            issuerRef:
+              name: selfsigned-ca-issuer
+              kind: ClusterIssuer
+              group: cert-manager.io
+      when: pulp_ssl | default(true)
+
+    - name: "Create pulp password secret"
+      kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig_path | default(omit) }}"
+        definition:
+          apiVersion: v1
+          kind: Secret
+          metadata:
+            name: "{{ pulp_name | default('pulp-deployment') }}-admin-password"
+            namespace: "{{ pulp_namespace | default('pulp') }}"
+          stringData:
+            password: "{{ pulp_admin_password }}"
+
+    - name: "Create signing configmap"
+      kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig_path | default(omit) }}"
+        definition:
+          apiVersion: v1
+          kind: ConfigMap
+          metadata:
+            name: signing-scripts
+            namespace: "{{ pulp_namespace | default('pulp') }}"
+          data:
+            collection_sign.sh: |-
+              #!/usr/bin/env bash
+              set -u
+              FILE_PATH=$1
+              SIGNATURE_PATH="$1.asc"
+
+              ADMIN_ID="$PULP_SIGNING_KEY_FINGERPRINT"
+              PASSWORD="password"
+
+              # Create a detached signature
+              gpg --quiet --batch --yes --passphrase \
+                  $PASSWORD --homedir ~/.gnupg/ --detach-sign --default-key $ADMIN_ID \
+                  --armor --output $SIGNATURE_PATH $FILE_PATH
+
+              # Check the exit status
+              STATUS=$?
+              if [ $STATUS -eq 0 ]; then
+                  echo {\"file\": \"$FILE_PATH\", \"signature\": \"$SIGNATURE_PATH\"}
+              else
+                  exit $STATUS
+              fi
+            container_sign.sh: |-
+              #!/usr/bin/env bash
+              set -u
+              # This GPG_TTY variable might be needed on a container image that is not running as root.
+              #export GPG_TTY=$(tty)
+              # Create a file with passphrase only if the key is password protected.
+              # echo "Galaxy2022" > /tmp/key_password.txt
+              # pulp_container SigningService will pass the next 3 variables to the script.
+              MANIFEST_PATH=$1
+              IMAGE_REFERENCE="$REFERENCE"
+              SIGNATURE_PATH="$SIG_PATH"
+              # Create container signature using skopeo
+              # Include --passphrase-file option if the key is password protected.
+              skopeo standalone-sign \
+              $MANIFEST_PATH \
+              $IMAGE_REFERENCE \
+              $PULP_SIGNING_KEY_FINGERPRINT \
+              --output $SIGNATURE_PATH
+              # Check the exit status
+              STATUS=$?
+              if [ $STATUS -eq 0 ]; then
+              echo {\"signature_path\": \"$SIGNATURE_PATH\"}
+              else
+              exit $STATUS
+              fi
+
+    - name: "Create signing Secret"
+      kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig_path | default(omit) }}"
+        definition:
+          apiVersion: v1
+          kind: Secret
+          metadata:
+            name: signing-galaxy
+            namespace: "{{ pulp_namespace | default('pulp') }}"
+          stringData:
+            signing_service.gpg: |-
+              {{ pulp_signing_key_private }}
+            signing_service.asc: |-
+              {{ pulp_signing_key_public }}
+
+    - name: "Deploy pulp"
+      kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig_path | default(omit) }}"
+        definition:
+          apiVersion: repo-manager.pulpproject.org/v1beta2
+          kind: Pulp
+          metadata:
+            name: "{{ pulp_name | default('pulp-deployment') }}"
+            namespace: "{{ pulp_namespace | default('pulp') }}"
+          spec:
+            ingress_type: ingress
+            ingress_class_name: nginx
+            is_nginx_ingress: false  # This creates configuration snippets which aren't allowed by default
+            ingress_host: galaxy.terraform.test
+            ingress_tls_secret: "{{ pulp_name | default('pulp-deployment') }}-certificate"
+
+            deployment_type: galaxy
+            image: quay.io/pulp/galaxy
+            image_version: 4.8.1
+            image_web: quay.io/pulp/galaxy-web
+            image_web_version: 4.8.1
+            no_log: false
+
+            deploy_ee_defaults: true
+
+            admin_password_secret: "{{ pulp_name | default('pulp-deployment') }}-admin-password"
+            signing_secret: "signing-galaxy"  # Will configure later
+            signing_scripts_configmap: "signing-scripts"
+
+            file_storage_access_mode: "ReadWriteMany"
+            file_storage_size: "10Gi"
+            file_storage_storage_class: longhorn
+            pulp_settings:
+              csrf_trusted_origins:
+                - https://galaxy.terraform.test
+              token_server: https://galaxy.terraform.test/token/
+              content_origin: https://galaxy.terraform.test
+              ansible_api_hostname: https://galaxy.terraform.test
+              api_root: "/api/galaxy/pulp/"
+              allowed_export_paths:
+                - /tmp
+              allowed_import_paths:
+                - /tmp
+              analytics: false
+              galaxy_feature_flags__ai_deny_index: false  # Just setting this seems to work?
+              galaxy_feature_flags__legacy_roles: true
+              galaxy_collection_signing_service: ''
+              galaxy_container_signing_service: ''
+            database:
+              postgres_storage_class: longhorn
+
+            api:
+              replicas: 1
+            content:
+              replicas: 1
+              resource_requirements:
+                requests:
+                  cpu: 150m
+                  memory: 256Mi
+                limits:
+                  cpu: 800m
+                  memory: 1Gi
+            worker:
+              replicas: 1
+              resource_requirements:
+                requests:
+                  cpu: 150m
+                  memory: 256Mi
+                limits:
+                  cpu: 800m
+                  memory: 1Gi
+            web:
+              replicas: 1
+              resource_requirements:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                limits:
+                  cpu: 800m
+                  memory: 1Gi
+
+    - name: "Return pulp password"
+      ansible.builtin.debug:
+        msg: "pulp has been deployed. The pulp admin password is: `{{ pulp_admin_password }}`"
+
+...

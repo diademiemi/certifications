@@ -1,0 +1,8 @@
+---
+- name: Set up RKE2
+  hosts: awx
+  gather_facts: true
+  roles:
+    - { role: diademiemi.rke2, tags: ['rke2']}
+
+...

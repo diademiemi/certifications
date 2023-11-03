@@ -1,0 +1,99 @@
+---
+- name: Set up RKE2
+  hosts: awx
+  gather_facts: true
+  pre_tasks:
+    - name: Ensure Python pip is installed
+      ansible.builtin.package:
+        name: python3-pip
+        state: present
+
+    - name: Ensure kubernetes python module is installed
+      ansible.builtin.pip:
+        name: kubernetes
+        state: present
+
+  tasks:
+    - name: "Generate random admin password"
+      ansible.builtin.set_fact:
+        awx_admin_password: "{{ lookup('password', '/dev/null length=32 chars=ascii_letters,digits') }}"
+      when: awx_admin_password is not defined
+
+    - name: Add AWX Helm repository
+      kubernetes.core.helm_repository:
+        name: awx-operator
+        repo_url: "https://ansible.github.io/awx-operator/"
+
+    - name: "Install AWX"
+      kubernetes.core.helm:
+        kubeconfig: "{{ kubeconfig_path | default(omit) }}"
+        chart_ref: "awx-operator/awx-operator"
+        chart_version: "{{ awx_version | default(omit) }}"
+        release_name: "{{ awx_operator_release_name | default('awx-operator') }}"
+        namespace: "{{ awx_namespace | default('awx') }}"
+        create_namespace: true
+
+    - name: "Generate SSL certificate"
+      kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig_path | default(omit) }}"
+        definition:
+          apiVersion: cert-manager.io/v1
+          kind: Certificate
+          metadata:
+            name: "{{ awx_name | default('awx-deployment') }}-certificate"
+            namespace: "{{ awx_namespace | default('awx') }}"
+          spec:
+            secretName: "{{ awx_name | default('awx-deployment') }}-certificate"
+            commonName: "{{ awx_hostname | default('awx.example.com') }}"
+            dnsNames:
+              - "{{ awx_hostname | default('awx.example.com') }}"
+            issuerRef:
+              name: selfsigned-ca-issuer
+              kind: ClusterIssuer
+              group: cert-manager.io
+      when: awx_ssl | default(true)
+
+    - name: "Create AWX password secret"
+      kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig_path | default(omit) }}"
+        definition:
+          apiVersion: v1
+          kind: Secret
+          metadata:
+            name: "{{ awx_name | default('awx-deployment') }}-admin-password"
+            namespace: "{{ awx_namespace | default('awx') }}"
+          stringData:
+            password: "{{ awx_admin_password }}"
+
+    - name: "Deploy AWX"
+      kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig_path | default(omit) }}"
+        definition:
+          apiVersion: awx.ansible.com/v1beta1
+          kind: AWX
+          metadata:
+            name: "{{ awx_name | default('awx-deployment') }}"
+            namespace: "{{ awx_namespace | default('awx') }}"
+          spec:
+            hostname: "{{ awx_hostname | default(omit) }}"
+            image: "{{ awx_image | default(omit) }}"
+            image_version: "{{ awx_image_version | default(omit) }}"
+            image_pull_policy: "{{ awx_image_pull_policy | default('Always') }}"
+            ee_images: "{{ awx_ee_images | default(omit) }}"
+            redis_image: "{{ awx_redis_image | default(omit) }}"
+            redis_image_version: "{{ awx_redis_image_version | default(omit) }}"
+            service_type: "{{ awx_service_type | default(omit) }}"
+            ingress_type: "{{ awx_ingress_type | default('ingress') }}"
+            ingress_tls_secret: "{% if awx_ssl | default(true) %}{{ awx_name | default('awx-deployment') }}-certificate\
+              {% else %}{{ awx_ingress_existing_tls_secret | default(omit) }}{% endif %}"
+            ingress_class_name: "{{ awx_ingress_class_name | default(omit) }}"
+            ingress_path: "{{ awx_ingress_path | default(omit) }}"
+            ingress_annotations: "{{ awx_ingress_annotations | default(omit) }}"  # String
+            extra_settings: "{{ awx_extra_settings | default(omit) }}"
+            no_log: false
+
+    - name: "Return AWX password"
+      ansible.builtin.debug:
+        msg: "AWX has been deployed. The AWX admin password is: `{{ awx_admin_password }}`"
+
+...

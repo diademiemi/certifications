@@ -1,0 +1,18 @@
+---
+awx_hostname: "awx.terraform.test"
+awx_admin_password: "admin"
+
+awx_ingress_class_name: nginx
+# awx_ingress_annotations: |
+#   nginx.ingress.kubernetes.io/configuration-snippet: |
+#       more_set_headers "X-Forwarded-For $http_x_forwarded_for";
+
+awx_extra_settings:
+  - setting: REMOTE_HOST_HEADERS
+    value: "['HTTP_X_FORWARDED_FOR', 'REMOTE_ADDR', 'REMOTE_HOST']"
+
+controller_host: "awx.terraform.test"
+controller_username: "admin"
+controller_password: "admin"
+controller_verify_ssl: false
+...

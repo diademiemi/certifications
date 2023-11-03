@@ -1,0 +1,20 @@
+---
+- name: Build VyOS image
+  hosts: localhost
+  tags: always, vyos, vms
+  roles:
+    - diademiemi.vm_utils.vyos_qcow2_image
+
+- name: Start VMs & Add to /etc/hosts
+  tags: always, vms
+  ansible.builtin.import_playbook: diademiemi.vm_utils.terraform_vms
+
+
+- name: Install Galaxy
+  tags: galaxy, always
+  ansible.builtin.import_playbook: galaxy/deploy.yml
+- name: Install AWX
+  tags: awx, always
+  ansible.builtin.import_playbook: awx/deploy.yml
+
+...

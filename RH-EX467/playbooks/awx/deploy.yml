@@ -1,0 +1,24 @@
+---
+- name: Refresh apt cache
+  tags: apt, cache, always
+  hosts: awx
+  tasks:
+    - name: Refresh apt cache
+      become: true
+      ansible.builtin.apt:
+        update_cache: true
+      changed_when: false
+
+- name: Install RKE2
+  tags: rke2, always
+  ansible.builtin.import_playbook: 01-rke2.yml
+
+- name: Install Kubernetes requisites
+  tags: requisites, always
+  ansible.builtin.import_playbook: 02-requisites.yml
+
+- name: Deploy AWX
+  tags: awx, always
+  ansible.builtin.import_playbook: 03-awx.yml
+
+...

@@ -1,0 +1,12 @@
+---
+collections:
+  - name: cloud.terraform
+    type: git
+    source: https://github.com/ansible-collections/cloud.terraform.git
+  - name: diademiemi.vm_utils
+
+roles:
+  - name: diademiemi.rke2
+  - name: diademiemi.helm
+
+...
