@@ -68,6 +68,23 @@ Links:
 
     Variables for the AWX host.
 
+### Run job templates from API
+AWX/AAP has an API available at `/api/v2`, you can list all endpoints with a `GET` to that address:
+```bash
+curl -X GET --user admin:admin -k https://awx.terraform.test/api/v2/
+```
+
+You can get a list of job templates with a `GET` to `/api/v2/job_templates`:
+```bash
+curl -X GET --user admin:admin -k https://awx.terraform.test/api/v2/job_templates
+```
+
+Every job template will have an ID, you can launch a specific one by sending a `POST` to `/api/v2/job_templates/<id>/launch/`:
+```bash
+curl -X POST --user admin:admin -k https://awx.terraform.test/api/v2/job_templates/1/launch/
+```
+
+
 ### Automation Mesh
 I wasn't able to test this in my homelab, but I did find some documentation on it. I've included it here for reference. This is a required part of the exam.
 
