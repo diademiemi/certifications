@@ -7,6 +7,8 @@ I wrote a test environment that deploys AWX and Ansible Galaxy-NG in Kubernetes.
 
 I primarily practiced for this exam by just running these VMs and messing around in AWX and automation hub. You can find more information about how I used these in [../RH-EX374](../RH-EX374).
 
+## Thoughts after exam
+Make sure to practice installing AAP with the official installer, like in the exam objectives! I ended up passing this exam with a perect score! 300/300! It was quite easy, if you know the hang of AWX and Galaxy, learn the enterprise versions and give this exam a go!
 
 ## Terraform + Ansible test environment
 To run the Ansible and Terraform code I wrote to run this, make sure you have a working Libvirt environment. Enter your connection URL as environment variable `TF_VAR_libvirt_uri`, it will default to `qemu:///system`, this is fine if it is your local machine.
