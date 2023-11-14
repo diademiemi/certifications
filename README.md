@@ -57,13 +57,13 @@ This repository is not to be used as a study guide, this will not be enough to s
         <tr>
             <td rowspan=1>Certified Specialist in Managing<br>Automation with Ansible Automation Platform</td>
             <td>EX467</td>
-            <td>WIP</td>
+            <td>🎉 2023-11-14</td>
             <td><code><a href="./RH-EX467">./RH-EX467</a></code></td>
         </tr>
         <tr>
-            <td rowspan=1>Certified Specialist in Services<br>Management and Automation</td>
-            <td>EX358</td>
-            <td>Todo</td>
+            <td rowspan=1>Certified Architect*</td>
+            <td></td>
+            <td>🎉 2023-11-14</td>
             <td></td>
         </tr>
         <tr>
@@ -73,6 +73,10 @@ This repository is not to be used as a study guide, this will not be enough to s
             <td><code><a href="./RH-EX280">./RH-EX280</a></code></td>
         </tr>
     </tbody>
+    <td colspan="5" class="divider" span style="font-size:10px">
+        * = Automatically handed out after RHCSA, RHCE and 5 other certifications
+        <hr/>
+    </td>
     <td colspan="5" class="divider">
         <hr/>
     </td>
